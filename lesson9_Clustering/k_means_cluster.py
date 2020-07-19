@@ -76,3 +76,80 @@ try:
     Draw(pred, finance_features, poi, mark_poi=False, name="clusters.pdf", f1_name=feature_1, f2_name=feature_2)
 except NameError:
     print("no predictions object named pred found, no clusters to plot")
+
+
+# Now rerun clustering using 3 features
+### The input features we want to use 
+### Can be any key in the person-level dictionary (salary, director_fees, etc.) 
+feature_1 = "salary"
+feature_2 = "exercised_stock_options"
+feature_3 = "total_payments"
+poi  = "poi"
+features_list = [poi, feature_1, feature_2, feature_3]
+data = featureFormat(data_dict, features_list)
+poi, finance_features = targetFeatureSplit(data)
+
+for f1, f2, _ in finance_features:
+    plt.scatter(f1, f2)
+plt.savefig('13_K-MeansClustering2a.png')
+plt.show()
+
+from sklearn.cluster import KMeans
+kmeans = KMeans(n_clusters=2, random_state=0)
+pred = kmeans.fit_predict(finance_features)
+
+try:
+    Draw(pred, finance_features, poi, mark_poi=False, name="13_K-MeansClustering2b.png", f1_name=feature_1, f2_name=feature_2)
+except NameError:
+    print("No predictions object named pred found, no clusters to plot")
+
+
+stocks = []
+for key, value in data_dict.items():
+    if value['exercised_stock_options'] != 'NaN':
+        stocks.append(value['exercised_stock_options'])
+
+print(min(stocks), max(stocks))
+
+
+stocks = []
+for key, value in data_dict.items():
+    if value['salary'] != 'NaN':
+        stocks.append(value['salary'])
+
+print(min(stocks), max(stocks))
+
+
+
+from sklearn.preprocessing import MinMaxScaler
+
+salary = []
+ex_stock = []
+
+for users in data_dict:
+    val = data_dict[users]["salary"]
+    if val == 'NaN':
+        continue
+    salary.append(float(val))
+    val = data_dict[users]["exercised_stock_options"]
+    if val == 'NaN':
+        continue
+    ex_stock.append(float(val))
+    
+salary = [min(salary), 200000.0, max(salary)]
+ex_stock = [min(ex_stock), 1000000.0, max(ex_stock)]
+
+print('Salary: {}'.format(salary))
+print('Exercised stock options: {}'.format(ex_stock))
+
+salary = numpy.array([[e] for e in salary])
+ex_stock = numpy.array([[e] for e in ex_stock])
+
+scaler_salary = MinMaxScaler()
+scaler_stock = MinMaxScaler()
+
+rescaled_salary = scaler_salary.fit_transform(salary)
+rescaled_stock = scaler_salary.fit_transform(ex_stock)
+
+print('Rescaled salary: {}'.format(rescaled_salary))
+print('Rescaled exercised stock options: {}'.format(rescaled_stock))
